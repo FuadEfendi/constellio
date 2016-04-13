@@ -31,15 +31,18 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constellio.app.conf.AppLayerConfiguration;
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.navigation.NavigationConfig;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.InvalidId.InvalidId_BlankId;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.InvalidId.InvalidId_ExistingId;
 import com.constellio.app.services.extensions.plugins.ConstellioPluginManagerRuntimeException.InvalidId.InvalidId_NonAlphaNumeric;
+import com.constellio.app.services.extensions.plugins.pluginDetector.FromJarPluginDetector;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.services.factories.AppLayerFactory;
 import com.constellio.data.dao.managers.config.ConfigManager;
+import com.constellio.data.io.services.facades.IOServices;
 import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.sdk.tests.ConstellioTest;
 import com.constellio.sdk.tests.SDKFoldersLocator;
@@ -56,7 +59,12 @@ public class JSPFConstellioPluginManagerAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		pluginManager = getAppLayerFactory().getPluginManager();
+		AppLayerConfiguration appLayerConfiguration = getAppLayerFactory().getAppLayerConfiguration();
+		IOServices ioServices = getModelLayerFactory().getIOServicesFactory()
+				.newIOServices();
+		pluginManager =new JSPFConstellioPluginManager(appLayerConfiguration.getPluginsFolder(), appLayerConfiguration.getPluginsManagementOnStartupFile(), ioServices,
+				new ConstellioPluginConfigurationManager(getDataLayerFactory().getConfigManager()), new FromJarPluginDetector());
+		pluginManager.initialize();
 		pluginsFolder = getAppLayerFactory().getAppLayerConfiguration().getPluginsFolder();
 		initTestFiles();
 	}

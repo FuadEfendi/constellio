@@ -33,6 +33,7 @@ import java.util.regex.Pattern;
 import net.xeoh.plugins.base.PluginManager;
 import net.xeoh.plugins.base.impl.PluginManagerFactory;
 import net.xeoh.plugins.base.util.PluginManagerUtil;
+import net.xeoh.plugins.base.util.uri.ClassURI;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -50,6 +51,10 @@ import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.
 import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.InvalidPluginJarException_NoVersion;
 import com.constellio.app.services.extensions.plugins.InvalidPluginJarException.InvalidPluginJarException_NonExistingFile;
 import com.constellio.app.services.extensions.plugins.PluginServices.PluginsReplacementException;
+import com.constellio.app.services.extensions.plugins.pluginDetector.FromLibPluginDetector;
+import com.constellio.app.services.extensions.plugins.pluginDetector.MoreThanOneInstallableModuleInJar;
+import com.constellio.app.services.extensions.plugins.pluginDetector.NoInstallableModuleInJar;
+import com.constellio.app.services.extensions.plugins.pluginDetector.PluginDetector;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginInfo;
 import com.constellio.app.services.extensions.plugins.pluginInfo.ConstellioPluginStatus;
 import com.constellio.app.services.extensions.plugins.utils.PluginManagementUtils;
@@ -71,9 +76,15 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	private Map<String, InstallableModule> validUploadedPlugins = new HashMap<>();
 	private IOServices ioServices;
 	private final File pluginsManagementOnStartupFile;
+	private final PluginDetector pluginDetector;
 
 	public JSPFConstellioPluginManager(File pluginsDirectory, File pluginsManagementOnStartupFile, IOServices ioServices,
 			ConstellioPluginConfigurationManager pluginConfigManger) {
+		this(pluginsDirectory, pluginsManagementOnStartupFile, ioServices, pluginConfigManger, new FromLibPluginDetector());
+	}
+
+	public JSPFConstellioPluginManager(File pluginsDirectory, File pluginsManagementOnStartupFile, IOServices ioServices,
+			ConstellioPluginConfigurationManager pluginConfigManger, PluginDetector pluginDetector) {
 		this.pluginConfigManger = pluginConfigManger;
 		this.pluginsDirectory = pluginsDirectory;
 		this.pluginsManagementOnStartupFile = pluginsManagementOnStartupFile;
@@ -91,6 +102,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 		}
 		this.ioServices = ioServices;
 		pluginConfigManger.createConfigFileIfNotExist();
+		this.pluginDetector = pluginDetector;
 	}
 
 	public void detectPlugins() {
@@ -107,7 +119,7 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 			}
 
 			for (ConstellioPluginInfo pluginInfo : getPlugins(ENABLED, DISABLED, READY_TO_INSTALL)) {
-				installValidPlugin(pluginInfo);
+				 installValidPlugin(pluginInfo);
 			}
 			handlePluginsDependency();
 
@@ -177,16 +189,12 @@ public class JSPFConstellioPluginManager implements StatefulService, ConstellioP
 	}
 
 	private PluginActivationFailureCause registerPlugin(File pluginJar, String pluginId) {
-		PluginManagerUtil util = new PluginManagerUtil(pluginManager);
-		Collection<InstallableModule> pluginsBefore = util.getPlugins(InstallableModule.class);
-
-		pluginManager.addPluginsFrom(pluginJar.toURI());
-		util = new PluginManagerUtil(pluginManager);
-		Collection<InstallableModule> pluginsAfter = util.getPlugins(InstallableModule.class);
-
-		if (pluginsAfter.size() == pluginsBefore.size()) {
+		Collection<InstallableModule> pluginsAfter;
+		try {
+			pluginsAfter = this.pluginDetector.detectPlugin(pluginManager, pluginJar);
+		} catch (NoInstallableModuleInJar noInstallableModuleInJar) {
 			return NO_INSTALLABLE_MODULE_DETECTED_FROM_JAR;
-		} else if (pluginsAfter.size() > pluginsBefore.size() + 1) {
+		} catch (MoreThanOneInstallableModuleInJar moreThanOneInstallableModuleInJar) {
 			return MORE_THAN_ONE_INSTALLABLE_MODULE_PER_JAR;
 		}
 		int pluginsWithPluginIdCount = 0;

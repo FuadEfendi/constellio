@@ -369,6 +369,30 @@ public class ESSchemasRecordsServices extends ESGeneratedSchemasRecordsServices 
 		return query;
 	}
 
+	public LogicalSearchQuery connectorDocumentsToFetchConsideringDelayAndNoDeletedQuery(ConnectorInstance<?> connectorInstance) {
+		LogicalSearchQuery query = connectorDocumentsToFetchConsideringAndNoDeletedQueryUnsorted(connectorInstance);
+		query.sortAsc(connectorDocument.fetched());
+		query.sortAsc(Schemas.MODIFIED_ON);
+		return query;
+	}
+
+	public LogicalSearchQuery connectorDocumentsToFetchConsideringAndNoDeletedQueryUnsorted(
+			ConnectorInstance<?> connectorInstance) {
+		List<String> typeCodes = instanciate(connectorInstance).getConnectorDocumentTypes();
+		List<MetadataSchemaType> types = getTypes().getSchemaTypesWithCode(typeCodes);
+		LogicalSearchQuery query = new LogicalSearchQuery();
+		String currentTraversalCode = connectorInstance.getTraversalCode();
+		query.setCondition(from(types).whereAllConditions(
+				where(connectorDocument.connector()).isEqualTo(connectorInstance),
+				where(Schemas.LOGICALLY_DELETED_STATUS).isFalseOrNull(),
+				where(connectorDocument.nextFetch()).isLessOrEqualThan(TimeProvider.getLocalDateTime()),
+				anyConditions(
+						where(connectorDocument.fetched()).isFalse(),
+						where(connectorDocument.traversalCode()).isNotEqual(currentTraversalCode))
+		));
+		return query;
+	}
+
 	public LogicalSearchQuery connectorDocumentsToFetchWithNoDelayAndNoDeletedQueryUnsorted(
 			ConnectorInstance<?> connectorInstance) {
 		List<String> typeCodes = instanciate(connectorInstance).getConnectorDocumentTypes();

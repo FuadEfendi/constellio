@@ -59,12 +59,7 @@ public class JSPFConstellioPluginManagerAcceptanceTest extends ConstellioTest {
 	@Before
 	public void setUp()
 			throws Exception {
-		AppLayerConfiguration appLayerConfiguration = getAppLayerFactory().getAppLayerConfiguration();
-		IOServices ioServices = getModelLayerFactory().getIOServicesFactory()
-				.newIOServices();
-		pluginManager =new JSPFConstellioPluginManager(appLayerConfiguration.getPluginsFolder(), appLayerConfiguration.getPluginsManagementOnStartupFile(), ioServices,
-				new ConstellioPluginConfigurationManager(getDataLayerFactory().getConfigManager()), new FromJarPluginDetector());
-		pluginManager.initialize();
+		pluginManager = getAppLayerFactory().getPluginManager();
 		pluginsFolder = getAppLayerFactory().getAppLayerConfiguration().getPluginsFolder();
 		initTestFiles();
 	}

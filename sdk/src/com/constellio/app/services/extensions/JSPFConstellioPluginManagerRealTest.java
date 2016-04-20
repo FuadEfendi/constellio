@@ -39,7 +39,8 @@ public class JSPFConstellioPluginManagerRealTest extends ConstellioTestWithGloba
 		getAppLayerFactory();
 		IOServices ioServices = new IOServices(newTempFolder());
 		pluginManager = spy(new JSPFConstellioPluginManager(pluginsDirectory,
-				getAppLayerFactory().getAppLayerConfiguration().getPluginsManagementOnStartupFile(), ioServices, pluginConfigManger));
+				getAppLayerFactory().getAppLayerConfiguration().getPluginsManagementOnStartupFile(), ioServices, pluginConfigManger
+				));
 		when(collectionsListManager.getCollections()).thenReturn(Arrays.asList("firstCollection", "secondCollection"));
 		assertThat(APluginImplementation.isStarted()).isFalse();
 

@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import net.xeoh.plugins.base.annotations.PluginImplementation;
+
 import com.constellio.app.entities.modules.InstallableModule;
 import com.constellio.app.entities.modules.MigrationScript;
 import com.constellio.app.entities.navigation.NavigationConfig;
@@ -26,7 +28,7 @@ import com.constellio.model.entities.configs.SystemConfiguration;
 import com.constellio.model.extensions.ModelLayerCollectionExtensions;
 import com.constellio.model.services.records.cache.CacheConfig;
 import com.constellio.model.services.records.cache.RecordsCache;
-
+@PluginImplementation
 public class TaskModule implements InstallableModule {
 	public static final String ID = "tasks";
 	public static final String NAME = "Tasks";

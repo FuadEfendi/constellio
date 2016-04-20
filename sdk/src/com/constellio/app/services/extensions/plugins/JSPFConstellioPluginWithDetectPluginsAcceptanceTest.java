@@ -59,6 +59,7 @@ public class JSPFConstellioPluginWithDetectPluginsAcceptanceTest extends Constel
 		assertThat(invalidPlugins).extracting("code", "pluginActivationFailureCause").containsOnly(
 				//tuple("InvalidModuleInMigrate", "INVALID_MIGRATION_SCRIPT"),
 				//tuple("InvalidModuleInStart", "INVALID_START"),
+
 				tuple("NoInstallableModule", NO_INSTALLABLE_MODULE_DETECTED_FROM_JAR),
 				tuple("SeveralInstallableModules", MORE_THAN_ONE_INSTALLABLE_MODULE_PER_JAR),
 				tuple("IdMissMatch2", ID_MISMATCH)

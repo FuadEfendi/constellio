@@ -75,7 +75,7 @@ public class Metadata implements DataStoreField {
 		this.type = type;
 		this.allowedReferences = null;
 		this.inheritedMetadataBehaviors = new InheritedMetadataBehaviors(false, multivalue, false, false, false, false, false,
-				false, false, false, false, false, false);
+				false, false, false, false, false, false, false);
 		this.defaultRequirement = false;
 		this.dataEntry = null;
 		this.encryptionServicesFactory = null;
@@ -257,6 +257,10 @@ public class Metadata implements DataStoreField {
 
 	public boolean isSearchable() {
 		return getInheritedMetadataBehaviors().isSearchable();
+	}
+
+	public boolean isCopyReferencedSearchables() {
+		return getInheritedMetadataBehaviors().isCopyReferencedSearchables();
 	}
 
 	public boolean isSortable() {

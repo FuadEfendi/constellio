@@ -53,6 +53,7 @@ public class MetadataBuilder {
 	private boolean childOfRelationship = false;
 	private boolean taxonomyRelationship = false;
 	private boolean searchable = false;
+	private boolean copyReferencedSearchables = false;
 	private boolean schemaAutocomplete = false;
 	private boolean sortable = false;
 	private boolean encrypted = false;
@@ -140,6 +141,7 @@ public class MetadataBuilder {
 		builder.defaultRequirement = metadata.isDefaultRequirement();
 		builder.multivalue = metadata.isMultivalue();
 		builder.searchable = metadata.isSearchable();
+		builder.copyReferencedSearchables = metadata.isCopyReferencedSearchables();
 		builder.sortable = metadata.isSortable();
 		builder.schemaAutocomplete = metadata.isSchemaAutocomplete();
 		builder.unmodifiable = metadata.isUnmodifiable();
@@ -179,6 +181,7 @@ public class MetadataBuilder {
 		builder.undeletable = metadata.isUndeletable();
 		builder.multivalue = metadata.isMultivalue();
 		builder.searchable = metadata.isSearchable();
+		builder.copyReferencedSearchables = metadata.isCopyReferencedSearchables();
 		builder.sortable = metadata.isSortable();
 		builder.schemaAutocomplete = metadata.isSchemaAutocomplete();
 		builder.unmodifiable = metadata.isUnmodifiable();
@@ -300,6 +303,16 @@ public class MetadataBuilder {
 	public MetadataBuilder setSortable(boolean sortable) {
 		ensureCanModify("sortable");
 		this.sortable = sortable;
+		return this;
+	}
+
+	public boolean isCopyReferencedSearchables() {
+		return inheritance == null ? copyReferencedSearchables : inheritance.isCopyReferencedSearchables();
+	}
+
+	public MetadataBuilder setCopyReferencedSearchables(boolean copyReferencedSearchables) {
+		ensureCanModify("copyReferencedSearchables");
+		this.copyReferencedSearchables = copyReferencedSearchables;
 		return this;
 	}
 
@@ -595,8 +608,8 @@ public class MetadataBuilder {
 		StructureFactory structureFactory = new InstanciationUtils()
 				.instanciateWithoutExpectableExceptions(structureFactoryClass);
 		InheritedMetadataBehaviors behaviors = new InheritedMetadataBehaviors(this.isUndeletable(), multivalue, systemReserved,
-				unmodifiable, uniqueValue, childOfRelationship, taxonomyRelationship, sortable, searchable, schemaAutocomplete,
-				essential, encrypted, essentialInSummary);
+				unmodifiable, uniqueValue, childOfRelationship, taxonomyRelationship, sortable, searchable,
+				copyReferencedSearchables, schemaAutocomplete, essential, encrypted, essentialInSummary);
 
 		MetadataAccessRestriction accessRestriction = accessRestrictionBuilder.build();
 
@@ -850,4 +863,5 @@ public class MetadataBuilder {
 	public ClassProvider getClassProvider() {
 		return classProvider;
 	}
+
 }

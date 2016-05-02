@@ -29,6 +29,42 @@ public class MetadataSchemasManagerMetadataFlagsAcceptanceTest extends Constelli
 	ZeSchemaMetadatas zeSchema = schemas.new ZeSchemaMetadatas();
 
 	@Test
+	public void whenAddUpdateSchemasThenSaveCopyReferencedSearchablesFlag()
+			throws Exception {
+		defineSchemasManager()
+				.using(schemas.withTwoMetadatasCopyingAnotherSchemaValuesUsingTwoDifferentReferenceMetadata(false, false, false));
+
+		assertThat(zeSchema.firstReferenceToAnotherSchema().isCopyReferencedSearchables()).isFalse();
+		assertThat(zeSchema.secondReferenceToAnotherSchema().isCopyReferencedSearchables()).isFalse();
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).get(zeSchema.firstReferenceToAnotherSchema().getLocalCode())
+						.setCopyReferencedSearchables(false);
+				types.getSchema(zeSchema.code()).get(zeSchema.secondReferenceToAnotherSchema().getLocalCode())
+						.setCopyReferencedSearchables(true);
+			}
+		});
+
+		assertThat(zeSchema.firstReferenceToAnotherSchema().isCopyReferencedSearchables()).isFalse();
+		assertThat(zeSchema.secondReferenceToAnotherSchema().isCopyReferencedSearchables()).isTrue();
+
+		schemas.modify(new MetadataSchemaTypesAlteration() {
+			@Override
+			public void alter(MetadataSchemaTypesBuilder types) {
+				types.getSchema(zeSchema.code()).get(zeSchema.firstReferenceToAnotherSchema().getLocalCode())
+						.setCopyReferencedSearchables(true);
+				types.getSchema(zeSchema.code()).get(zeSchema.secondReferenceToAnotherSchema().getLocalCode())
+						.setCopyReferencedSearchables(false);
+			}
+		});
+
+		assertThat(zeSchema.firstReferenceToAnotherSchema().isCopyReferencedSearchables()).isTrue();
+		assertThat(zeSchema.secondReferenceToAnotherSchema().isCopyReferencedSearchables()).isFalse();
+	}
+
+	@Test
 	public void whenAddUpdateSchemasThenSaveEssentialFlag()
 			throws Exception {
 		defineSchemasManager().using(schemas.withAStringMetadata(whichIsEssential).withABooleanMetadata());

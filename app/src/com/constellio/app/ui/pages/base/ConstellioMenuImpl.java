@@ -71,12 +71,6 @@ public class ConstellioMenuImpl extends CustomComponent implements ConstellioMen
 		setSizeUndefined();
 
 		setCompositionRoot(buildContent());
-//		UI.getCurrent().addClickListener(new com.vaadin.event.MouseEvents.ClickListener() {
-//			@Override
-//			public void click(com.vaadin.event.MouseEvents.ClickEvent event) {
-//				hideMenu();
-//			}
-//		});
 	}
 
 	@Override

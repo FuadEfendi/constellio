@@ -1,6 +1,8 @@
 package com.constellio.app.ui.pages.base;
 
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import com.constellio.app.ui.application.ConstellioUI;
@@ -13,20 +15,22 @@ public class VaadinSessionContext implements SessionContext {
 	public static final String CURRENT_COLLECTION_ATTRIBUTE = VaadinSessionContext.class.getName() + ".currentCollection";
 	public static final String USER_PRINCIPAL_ATTRIBUTE = VaadinSessionContext.class.getName() + ".userPrincipal";
 	public static final String FORCED_SIGN_OUT_ATTRIBUTE = VaadinSessionContext.class.getName() + ".forcedSignOut";
-
+	public static final String COLLECTION_CHANGE_LISTENERS_ATTRIBUTE = VaadinSessionContext.class.getName() + ".collectionChangeListeners";
+	
 	public VaadinSessionContext() {
 	}
 
-	private Object getAttribute(String name) {
+	@SuppressWarnings("unchecked")
+	private <T extends Object> T getAttribute(String name) {
 		VaadinSession vaadinSession = VaadinSession.getCurrent();
-		return vaadinSession.getSession().getAttribute(name);
+		return (T) vaadinSession.getSession().getAttribute(name);
 	}
 
 	private void setAttribute(String name, Object object) {
 		VaadinSession vaadinSession = VaadinSession.getCurrent();
 		vaadinSession.getSession().setAttribute(name, object);
 	}
-
+	
 	@Override
 	public UserVO getCurrentUser() {
 		return (UserVO) getAttribute(CURRENT_USER_ATTRIBUTE);
@@ -45,6 +49,10 @@ public class VaadinSessionContext implements SessionContext {
 	@Override
 	public void setCurrentCollection(String collection) {
 		setAttribute(CURRENT_COLLECTION_ATTRIBUTE, collection);
+		List<CollectionChangeListener> collectionChangeListeners = getCollectionChangeListeners();
+		for (CollectionChangeListener collectionChangeListener : collectionChangeListeners) {
+			collectionChangeListener.collectionChanged(collection);
+		}
 	}
 
 	@Override
@@ -75,6 +83,28 @@ public class VaadinSessionContext implements SessionContext {
 	@Override
 	public void setForcedSignOut(boolean forcedSignOut) {
 		setAttribute(FORCED_SIGN_OUT_ATTRIBUTE, forcedSignOut);
+	}
+
+	@Override
+	public void addCollectionChangeListener(CollectionChangeListener listener) {
+		List<CollectionChangeListener> collectionChangeListeners = getCollectionChangeListeners();
+		collectionChangeListeners.add(listener);
+	}
+
+	@Override
+	public List<CollectionChangeListener> getCollectionChangeListeners() {
+		List<CollectionChangeListener> collectionChangeListeners = getAttribute(COLLECTION_CHANGE_LISTENERS_ATTRIBUTE);
+		if (collectionChangeListeners == null) {
+			collectionChangeListeners = new ArrayList<>();
+			setAttribute(COLLECTION_CHANGE_LISTENERS_ATTRIBUTE, collectionChangeListeners);
+		}
+		return collectionChangeListeners;
+	}
+
+	@Override
+	public void removeCollectionChangeListener(CollectionChangeListener listener) {
+		List<CollectionChangeListener> collectionChangeListeners = getCollectionChangeListeners();
+		collectionChangeListeners.remove(listener);
 	}
 
 }

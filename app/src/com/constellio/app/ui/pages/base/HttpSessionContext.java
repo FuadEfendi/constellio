@@ -6,6 +6,7 @@ import static com.constellio.app.ui.pages.base.VaadinSessionContext.FORCED_SIGN_
 import static com.constellio.app.ui.pages.base.VaadinSessionContext.USER_PRINCIPAL_ATTRIBUTE;
 
 import java.security.Principal;
+import java.util.List;
 import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
@@ -82,6 +83,21 @@ public class HttpSessionContext implements SessionContext {
 	@Override
 	public void setForcedSignOut(boolean forcedSignOut) {
 		setAttribute(FORCED_SIGN_OUT_ATTRIBUTE, forcedSignOut);
+	}
+
+	@Override
+	public void addCollectionChangeListener(CollectionChangeListener listener) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public List<CollectionChangeListener> getCollectionChangeListeners() {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void removeCollectionChangeListener(CollectionChangeListener listener) {
+		throw new UnsupportedOperationException();
 	}
 
 }

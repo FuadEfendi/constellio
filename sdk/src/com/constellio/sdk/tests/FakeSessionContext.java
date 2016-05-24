@@ -13,6 +13,7 @@ import com.constellio.app.ui.entities.MetadataValueVO;
 import com.constellio.app.ui.entities.RecordVO.VIEW_MODE;
 import com.constellio.app.ui.entities.UserVO;
 import com.constellio.app.ui.pages.base.SessionContext;
+import com.constellio.app.ui.pages.base.SessionContext.CollectionChangeListener;
 import com.constellio.model.entities.records.wrappers.User;
 import com.constellio.model.entities.schemas.MetadataValueType;
 
@@ -25,6 +26,8 @@ public class FakeSessionContext implements SessionContext {
 	Locale locale;
 	Principal userPrincipal;
 	boolean forcedSignOut;
+	
+	List<CollectionChangeListener> collectionChangeListeners = new ArrayList<>();
 
 	private static FakeSessionContext current;
 
@@ -180,6 +183,9 @@ public class FakeSessionContext implements SessionContext {
 	@Override
 	public void setCurrentCollection(String collection) {
 		this.collection = collection;
+		for (CollectionChangeListener collectionChangeListener : collectionChangeListeners) {
+			collectionChangeListener.collectionChanged(collection);
+		}
 	}
 
 	@Override
@@ -214,6 +220,21 @@ public class FakeSessionContext implements SessionContext {
 	@Override
 	public void setForcedSignOut(boolean forcedSignOut) {
 		this.forcedSignOut = forcedSignOut;
+	}
+
+	@Override
+	public void addCollectionChangeListener(CollectionChangeListener listener) {
+		collectionChangeListeners.add(listener);
+	}
+
+	@Override
+	public List<CollectionChangeListener> getCollectionChangeListeners() {
+		return collectionChangeListeners;
+	}
+
+	@Override
+	public void removeCollectionChangeListener(CollectionChangeListener listener) {
+		collectionChangeListeners.remove(listener);
 	}
 
 }

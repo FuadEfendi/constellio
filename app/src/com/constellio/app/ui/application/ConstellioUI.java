@@ -39,6 +39,7 @@ import com.constellio.model.services.records.RecordServices;
 import com.constellio.model.services.records.RecordServicesException;
 import com.constellio.model.services.users.UserServices;
 import com.vaadin.annotations.Theme;
+import com.vaadin.event.UIEvents.PollEvent;
 import com.vaadin.event.UIEvents.PollListener;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
@@ -55,9 +56,10 @@ import com.vaadin.ui.UI;
 
 @SuppressWarnings("serial")
 @Theme("constellio")
-public class ConstellioUI extends UI implements SessionContextProvider {
-
+public class ConstellioUI extends UI implements SessionContextProvider, SessionContext.CollectionChangeListener {
+	
 	private SessionContext sessionContext;
+	
 	private MainLayoutImpl mainLayout;
 
 	private List<RecordContextMenuHandler> recordContextMenuHandlers = new ArrayList<>();
@@ -65,6 +67,10 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 	public final RequestHandler requestHandler = new ConstellioResourceHandler();
 
 	private KerberosServices kerberosServices;
+	
+	private String lastKnownCollection;
+	
+	private boolean updateUIAfterCollectionChange;
 
 	@Override
 	protected void init(VaadinRequest request) {
@@ -109,6 +115,7 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 		}
 		VaadinSession.getCurrent().setLocale(i18n.getLocale());
 		sessionContext.setCurrentLocale(i18n.getLocale());
+		setupCollectionChangeListener();
 
 		updateContent();
 
@@ -116,11 +123,26 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 			initUIListener.afterInitialize(this);
 		}
 	}
+	
+	private void setupCollectionChangeListener() {
+		sessionContext.addCollectionChangeListener(this);
+		addPollListener(new PollListener() {
+			@Override
+			public void poll(PollEvent event) {
+				if (updateUIAfterCollectionChange) {
+					updateUIAfterCollectionChange = false;
+					navigate().to().home();
+					updateContent();
+				}
+			}
+		});
+	}
 
 	@Override
 	public void detach() {
 		super.detach();
 		getSession().removeRequestHandler(requestHandler);
+//		sessionContext.removeCollectionChangeListener(this);
 	}
 
 	private UserVO ssoAuthenticate() {
@@ -320,6 +342,15 @@ public class ConstellioUI extends UI implements SessionContextProvider {
 
 	public static ConstellioUI getCurrent() {
 		return (ConstellioUI) UI.getCurrent();
+	}
+
+	@Override
+	public void collectionChanged(String newCollection) {
+		if (lastKnownCollection != null && !lastKnownCollection.equals(newCollection)) {
+			updateUIAfterCollectionChange = true;
+		}
+		System.err.println("Collection changed!");
+		lastKnownCollection = newCollection;
 	}
 
 }

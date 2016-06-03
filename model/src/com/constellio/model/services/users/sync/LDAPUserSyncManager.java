@@ -9,6 +9,7 @@ import javax.naming.NamingException;
 import javax.naming.ldap.LdapContext;
 
 import com.constellio.model.services.users.UserUtils;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 
@@ -96,23 +97,23 @@ public class LDAPUserSyncManager implements StatefulService {
 		List<String> selectedCollectionsCodes = userSyncConfiguration.getSelectedCollectionsCodes();
 
 		//FIXME cas rare mais possible nom d utilisateur/de groupe non unique (se trouvant dans des urls differentes)
-			for (String url : serverConfiguration.getUrls()) {
+		for (String url : serverConfiguration.getUrls()) {
 			LdapContext ldapContext = ldapServices
 					.connectToLDAP(serverConfiguration.getDomains(), url, userSyncConfiguration.getUser(),
 							userSyncConfiguration.getPassword(), serverConfiguration.getFollowReferences(), activeDirectory);
 			Set<LDAPGroup> ldapGroups = ldapServices.getAllGroups(ldapContext, userSyncConfiguration.getGroupBaseContextList());
 			ldapGroups = getAcceptedGroups(ldapGroups);
 
-			List<LDAPUser> ldapUsers = getAcceptedUsersFromGroups(ldapGroups, ldapContext);
+			List<LDAPUser> ldapUsers = getAcceptedUsersFromGroupsWithoutAddingNewGroups(ldapGroups, ldapContext);
 
 			List<LDAPUser> usersWithoutGroups = getAcceptedUsersNotLinkedToGroups(ldapContext);
 
-			Set<LDAPGroup> ldapGroupsFromUsers = getGroupsFromUser(usersWithoutGroups);
+			Set<LDAPGroup> ldapGroupsFromUsers = getGroupsFromUsersWithoutAddingNewUsers(usersWithoutGroups);
 			ldapGroups.addAll(ldapGroupsFromUsers);
 
 			//groups that are retrieved from users
-			ldapGroupsFromUsers = getGroupsFromUser(ldapUsers);
-			ldapGroups.addAll(ldapGroupsFromUsers);
+			//ldapGroupsFromUsers = getGroupsFromUsersWithoutAddingNewUsers(ldapUsers);
+			//ldapGroups.addAll(ldapGroupsFromUsers);
 
 			ldapUsers.addAll(usersWithoutGroups);
 
@@ -140,7 +141,7 @@ public class LDAPUserSyncManager implements StatefulService {
 		removeGroups(removedGroupsIds);
 	}
 
-	private Set<LDAPGroup> getGroupsFromUser(List<LDAPUser> users) {
+	private Set<LDAPGroup> getGroupsFromUsersWithoutAddingNewUsers(List<LDAPUser> users) {
 		Set<LDAPGroup> returnSet = new HashSet<>();
 		for (LDAPUser user : users) {
 			returnSet.addAll(user.getUserGroups());
@@ -235,13 +236,15 @@ public class LDAPUserSyncManager implements StatefulService {
 		return (value == null) ? "" : value;
 	}
 
-	public List<LDAPUser> getAcceptedUsersFromGroups(Set<LDAPGroup> ldapGroups, LdapContext ldapContext) {
+	public List<LDAPUser> getAcceptedUsersFromGroupsWithoutAddingNewGroups(Set<LDAPGroup> ldapGroups, LdapContext ldapContext) {
 		List<LDAPUser> returnUsers = new ArrayList<>();
 		Set<String> groupsMembersIds = new HashSet<>();
+		Set<String> ldapGroupsDns = new HashSet<>();
 		LDAPServices ldapServices = new LDAPServices();
 		for (LDAPGroup group : ldapGroups) {
 			List<String> usersToAdd = group.getMembers();
 			groupsMembersIds.addAll(usersToAdd);
+			ldapGroupsDns.add(group.getDistinguishedName());
 		}
 		LDAPDirectoryType directoryType = serverConfiguration.getDirectoryType();
 		for (String memberId : groupsMembersIds) {
@@ -252,7 +255,7 @@ public class LDAPUserSyncManager implements StatefulService {
 				if (userSyncConfiguration.isUserAccepted(userName)) {
 					returnUsers.add(ldapUser);
 				}
-				removeNonAcceptedGroups(ldapUser);
+				removeNonAcceptedGroups(ldapUser, ldapGroupsDns);
 			}
 		}
 		return returnUsers;
@@ -287,6 +290,17 @@ public class LDAPUserSyncManager implements StatefulService {
 			}
 		}
 		return returnUsers;
+	}
+
+	private void removeNonAcceptedGroups(LDAPUser ldapUser, final Set<String> acceptedLdapGroupsDns) {
+		CollectionUtils.filter(ldapUser.getUserGroups(), new Predicate() {
+			@Override
+			public boolean evaluate(Object object) {
+				LDAPGroup group = (LDAPGroup) object;
+				return userSyncConfiguration.isGroupAccepted(group.getSimpleName()) && acceptedLdapGroupsDns
+						.contains(group.getDistinguishedName());
+			}
+		});
 	}
 
 	private void removeNonAcceptedGroups(LDAPUser ldapUser) {

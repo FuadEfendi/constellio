@@ -39,9 +39,8 @@ public class LDAPGroup {
 		if (simpleNameOrDN.contains("=")) {
 			return StringUtils.substringBetween(simpleNameOrDN, "=", ",");
 		} else {
-			return simpleName;
+			return simpleNameOrDN;
 		}
-
 	}
 
 	public String getDistinguishedName() {

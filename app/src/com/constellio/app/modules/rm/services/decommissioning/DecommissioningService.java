@@ -671,9 +671,15 @@ public class DecommissioningService {
 		MetadataSchema schema = newFolder.getSchema();
 
 		for (Metadata metadata : schema.getMetadatas().onlyEnabled().onlyNonSystemReserved().onlyManuals().onlyDuplicable()) {
-			newFolder.getWrappedRecord().set(metadata, folder.getWrappedRecord().get(metadata));
+            newFolder.getWrappedRecord().set(metadata, folder.getWrappedRecord().get(metadata));
 		}
-		newFolder.setTitle(folder.getTitle() + " (Copie)");
+
+        if (folder.getSchema().getMetadata(Schemas.TITLE.getCode()).isDuplicable()) {
+            newFolder.setTitle(folder.getTitle() + " (Copie)");
+        } else {
+            newFolder.setTitle(folder.getTitle());
+        }
+
 		newFolder.setFormCreatedBy(currentUser);
 		newFolder.setFormCreatedOn(TimeProvider.getLocalDateTime());
 

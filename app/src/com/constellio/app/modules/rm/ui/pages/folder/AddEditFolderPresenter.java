@@ -86,6 +86,7 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		Map<String, String> paramsMap = ParamUtils.getParamsMap(params);
 		String id = paramsMap.get("id");
 		String parentId = paramsMap.get("parentId");
+        String isTitleDuplicable = paramsMap.get("isTitleDuplicable");
 
 		Record record;
 		if (StringUtils.isNotBlank(id)) {
@@ -101,8 +102,13 @@ public class AddEditFolderPresenter extends SingleSchemaBasePresenter<AddEditFol
 		}
 		folderVO = voBuilder.build(record, VIEW_MODE.FORM, view.getSessionContext());
 		folderHadAParent = folderVO.getParentFolder() != null;
-		this.currentSchemaCode = folderVO.getSchema().getCode();
+		currentSchemaCode = folderVO.getSchema().getCode();
 		setSchemaCode(currentSchemaCode);
+
+        if (Boolean.toString(false).equalsIgnoreCase(isTitleDuplicable)) {
+            folderVO.setTitle("");
+        }
+
 		view.setRecord(folderVO);
 	}
 

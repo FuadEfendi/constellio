@@ -514,7 +514,8 @@ public class DisplayFolderPresenter extends SingleSchemaBasePresenter<DisplayFol
 	public void duplicateFolderButtonClicked() {
 		Folder folder = rmSchemasRecordsServices().getFolder(folderVO.getId());
 		Folder duplicatedFolder = decommissioningService().duplicateAndSave(folder, getCurrentUser());
-		view.navigate().to(RMViews.class).editFolder(duplicatedFolder.getId());
+        boolean isTitleDuplicable = folder.getSchema().getMetadata(Schemas.TITLE.getCode()).isDuplicable();
+		view.navigate().to(RMViews.class).duplicateFolder(duplicatedFolder.getId(), isTitleDuplicable);
 	}
 
 	public void duplicateStructureButtonClicked() {

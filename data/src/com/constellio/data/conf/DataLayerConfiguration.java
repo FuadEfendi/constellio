@@ -14,6 +14,8 @@ public interface DataLayerConfiguration {
 
 	String getRecordsDaoHttpSolrServerUrl();
 
+	File getEmbeddedSolrServerFolder();
+
 	String getRecordsDaoCloudSolrServerZKHost();
 
 	boolean isRecordsDaoHttpSolrServerFaultInjectionEnabled();

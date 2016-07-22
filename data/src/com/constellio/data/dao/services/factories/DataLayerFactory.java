@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import com.constellio.data.dao.services.solr.serverFactories.EmbeddedSolrServerFactory;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.params.ModifiableSolrParams;
 
@@ -236,12 +237,21 @@ public class DataLayerFactory extends LayerFactory {
 		if (SolrServerType.HTTP == solrServerType) {
 			return newHttpSolrServerFactory();
 
+		} else if (SolrServerType.EMBEDDED == solrServerType) {
+			return newEmbeddedSolrServerFactory();
+
 		} else if (SolrServerType.CLOUD == solrServerType) {
 			return newSolrCloudServerFactory();
 
 		} else {
 			throw new ImpossibleRuntimeException("Unsupported solr server type");
 		}
+	}
+
+
+	private SolrServerFactory newEmbeddedSolrServerFactory() {
+		File folder = dataLayerConfiguration.getEmbeddedSolrServerFolder();
+		return new EmbeddedSolrServerFactory(folder);
 	}
 
 	private SolrServerFactory newHttpSolrServerFactory() {

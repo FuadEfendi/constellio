@@ -40,6 +40,11 @@ public class PropertiesDataLayerConfiguration extends PropertiesConfiguration im
 		return getRequiredString("dao.records.http.url");
 	}
 
+	@Override
+	public File getEmbeddedSolrServerFolder() {
+		return getFile("dao.records.embedded.folder", null);
+	}
+
 	public String getRecordsDaoCloudSolrServerZKHost() {
 		return getRequiredString(ZKHOST);
 	}

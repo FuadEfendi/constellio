@@ -17,6 +17,7 @@ import com.constellio.app.modules.rm.ui.components.document.fields.DocumentFolde
 import com.constellio.app.modules.rm.ui.components.document.fields.DocumentTypeFieldLookupImpl;
 import com.constellio.app.modules.rm.wrappers.Email;
 import com.constellio.app.ui.entities.MetadataVO;
+import com.constellio.app.ui.entities.RecordVO;
 import com.vaadin.ui.Field;
 
 public class DocumentFieldFactory extends RMMetadataFieldFactory {
@@ -31,7 +32,7 @@ public class DocumentFieldFactory extends RMMetadataFieldFactory {
 	}
 
 	@Override
-	public Field<?> build(MetadataVO metadata) {
+	public Field<?> build(RecordVO recordVO, MetadataVO metadata) {
 		Field<?> field;
 		switch (metadata.getLocalCode()) {
 		case TYPE:
@@ -47,17 +48,17 @@ public class DocumentFieldFactory extends RMMetadataFieldFactory {
 			field = new DocumentCopyRuleFieldImpl(copyRules);
 			break;
 		default:
-			field = super.build(metadata);
+			field = super.build(recordVO, metadata);
 		}
 		if (field instanceof CustomDocumentField) {
-			postBuild(field, metadata);
+			postBuild(field, recordVO, metadata);
 		}
 		return field;
 	}
 
 	@Override
-	protected void postBuild(Field<?> field, MetadataVO metadata) {
-		super.postBuild(field, metadata);
+	public void postBuild(Field<?> field, RecordVO recordVO, MetadataVO metadata) {
+		super.postBuild(field, recordVO, metadata);
 
 		String schemaCode = metadata.getSchema().getCode();
 		if (Email.SCHEMA.equals(schemaCode)) {

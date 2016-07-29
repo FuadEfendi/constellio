@@ -339,4 +339,8 @@ public class RMConfigs {
 		return manager.getValue(DOCUMENTS_TYPES_CHOICE);
 	}
 
+	public CalculatorWithManualMetadataChoice getArchivisticCalculatorsMode() {
+		return manager.getValue(ARCHIVISTIC_CALCULATORS_WITH_MANUAL_METADATA);
+	}
+
 }
